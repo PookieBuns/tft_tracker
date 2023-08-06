@@ -1,19 +1,34 @@
 from aiohttp import ClientSession
 
-PROFILE_URL = "https://lolchess.gg/profile/na/{profile_name}"
+PROFILE_URL = "https://lolchess.gg/profile/{region}/{profile_name}"
+GAME_URL = "https://lolchess.gg/profile/{region}/{profile_name}/matchDetail/{set_name}/{game_id}"
+SET_NAME = "s9"
 
 
-async def get_profile_data(session: ClientSession, username: str) -> str:
-    async with session.get(PROFILE_URL.format(profile_name=username)) as response:
+async def get_profile_data(session: ClientSession, region: str, username: str) -> str:
+    async with session.get(
+        PROFILE_URL.format(region=region, profile_name=username)
+    ) as response:
         return await response.text()
 
 
 async def update_profile_data(session: ClientSession, update_url: str):
-    while True:
+    for _ in range(10):
         res = await session.get(update_url)
         res_json = await res.json()
-        print(res_json)
         if res_json.get("done"):
             break
         res = await session.get(update_url)
         res_json = await res.json()
+
+
+async def get_game_data(
+    session: ClientSession, region: str, username: str, game_id: str
+) -> str:
+    async with session.get(
+        GAME_URL.format(
+            region=region, profile_name=username, set_name=SET_NAME, game_id=game_id
+        )
+    ) as response:
+        resp_json = await response.json()
+        return resp_json["html"]

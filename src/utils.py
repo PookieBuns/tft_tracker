@@ -1,6 +1,6 @@
-import pandas as pd
-from sqlalchemy import CursorResult
-def convert_to_df(result: CursorResult):
-    columns = result.columns()
-    data = result.fetchall()
-    return pd.DataFrame(data, columns=columns)
+import re
+
+def camel_to_snake(camel: str) -> str:
+    """Convert CamelCase to snake_case"""
+    snake = re.sub(r'(?<!^)(?=[A-Z])', '_', camel).lower()
+    return snake
