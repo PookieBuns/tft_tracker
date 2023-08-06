@@ -2,9 +2,9 @@
 
 Riot banned augment placement stats so I'm collecting them myself
 
-I'm currently scraping lolchess because I can't be bothered enough to sign up for riot api. Maybe sometime in the future if I care enough I will transition over.
-
 Idk why nobody has a public repository about this so here it is. If this violates some sort of policy message me to take it down please.
+
+I'm currently scraping lolchess because I can't be bothered enough to sign up for riot api. Maybe sometime in the future if I care enough I will transition over.
 
 This is still heavily work in progress, use at your own risk
 
