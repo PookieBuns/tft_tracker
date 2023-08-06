@@ -20,3 +20,4 @@ TODO: Teach people how to use it
 - Add a status tracking for games so I don't rescrape them
 - Scrape more than just the first page
 - Change liscense to WTFPL
+- Add a frontend to actually be able to see the stats
