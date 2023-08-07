@@ -14,7 +14,7 @@ TODO: Teach people how to use it
 
 ## TODO
 
-- Add caching for augment, unit, and item id for better performance
+- Add caching for augment, unit, and item id for better performance [DONE]
 - Add consumer / producer implementations for ETL
 - Add a scheduler
 - Add a status tracking for games so I don't rescrape them

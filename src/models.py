@@ -1,7 +1,8 @@
 from datetime import datetime
+from enum import Enum
 
 from pydantic import BaseModel
-from sqlalchemy import BigInteger, Column, ForeignKey
+from sqlalchemy import BigInteger, Column, ForeignKey, text
 from sqlalchemy.orm import declared_attr
 from sqlmodel import Field, Index
 from sqlmodel import SQLModel as _SQLModel
@@ -15,6 +16,11 @@ class SQLModel(_SQLModel):
         return camel_to_snake(cls.__name__)
 
 
+class GameStatus(Enum):
+    pending = "pending"
+    processed = "processed"
+
+
 class GameBase(SQLModel):
     id: int = Field(sa_column=Column(BigInteger, primary_key=True))
     region: str
@@ -22,11 +28,25 @@ class GameBase(SQLModel):
     game_mode: str
     game_length: int
     game_start_time: datetime
+    status: GameStatus = Field(
+        default=GameStatus.pending,
+        sa_column_kwargs={
+            "server_default": GameStatus.pending.value,
+        },
+    )
 
 
 class Game(GameBase, table=True):
-    created_at: datetime = Field(default=datetime.utcnow)
-    modified_at: datetime = Field(default=datetime.utcnow)
+    created_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
+    modified_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
 
 
 class PlayerBase(SQLModel):
@@ -37,18 +57,34 @@ class PlayerBase(SQLModel):
 
 
 class Player(PlayerBase, table=True):
-    id: int = Field(default=None, primary_key=True)
-    created_at: datetime = Field(default=datetime.utcnow)
-    modified_at: datetime = Field(default=datetime.utcnow)
+    id: int = Field(primary_key=True)
+    created_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
+    modified_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
 
 
 class GamePlayer(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int = Field(primary_key=True)
     game_id: int = Field(sa_column=Column(BigInteger, ForeignKey("game.id")))
     player_id: int = Field(foreign_key="player.id")
     placement: int
-    created_at: datetime = Field(default=datetime.utcnow)
-    modified_at: datetime = Field(default=datetime.utcnow)
+    created_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
+    modified_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
 
     __table_args__ = (
         Index("game_player_game_id_player_id", "game_id", "player_id", unique=True),
@@ -61,17 +97,33 @@ class AugmentBase(SQLModel):
 
 
 class Augment(AugmentBase, table=True):
-    created_at: datetime = Field(default=datetime.utcnow)
-    modified_at: datetime = Field(default=datetime.utcnow)
+    created_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
+    modified_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
 
 
 class GamePlayerAugment(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int = Field(primary_key=True)
     game_player_id: int = Field(foreign_key="game_player.id")
     augment_num: int
     augment_id: int = Field(foreign_key="augment.id")
-    created_at: datetime = Field(default=datetime.utcnow)
-    modified_at: datetime = Field(default=datetime.utcnow)
+    created_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
+    modified_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
 
     __table_args__ = (
         Index(
@@ -88,9 +140,17 @@ class UnitBase(SQLModel):
 
 
 class Unit(UnitBase, table=True):
-    id: int = Field(default=None, primary_key=True)
-    created_at: datetime = Field(default=datetime.utcnow)
-    modified_at: datetime = Field(default=datetime.utcnow)
+    id: int = Field(primary_key=True)
+    created_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
+    modified_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
 
 
 class GamePlayerUnit(SQLModel, table=True):
@@ -116,18 +176,34 @@ class ItemBase(SQLModel):
 
 
 class Item(ItemBase, table=True):
-    id: int = Field(default=None, primary_key=True)
-    created_at: datetime = Field(default=datetime.utcnow)
-    modified_at: datetime = Field(default=datetime.utcnow)
+    id: int = Field(primary_key=True)
+    created_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
+    modified_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
 
 
 class GamePlayerUnitItem(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int = Field(primary_key=True)
     game_player_unit_id: int = Field(foreign_key="game_player_unit.id")
     item_num: int
     item_id: int = Field(foreign_key="item.id")
-    created_at: datetime = Field(default=datetime.utcnow)
-    modified_at: datetime = Field(default=datetime.utcnow)
+    created_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
+    modified_at: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
 
     __table_args__ = (
         Index(

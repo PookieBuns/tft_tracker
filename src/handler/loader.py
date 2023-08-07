@@ -22,6 +22,31 @@ from src.models import (
     ItemBase,
 )
 
+augment_cache = {}
+unit_cache = {}
+item_cache = {}
+
+
+async def load_augment_cache(conn: AsyncConnection) -> None:
+    stmt = select(Augment.augment_name, Augment.id)
+    res = await conn.execute(stmt)
+    for augment_name, augment_id in res:
+        augment_cache[augment_name] = augment_id
+
+
+async def load_unit_cache(conn: AsyncConnection) -> None:
+    stmt = select(Unit.unit_name, Unit.id)
+    res = await conn.execute(stmt)
+    for unit_name, unit_id in res:
+        unit_cache[unit_name] = unit_id
+
+
+async def load_item_cache(conn: AsyncConnection) -> None:
+    stmt = select(Item.item_name, Item.id)
+    res = await conn.execute(stmt)
+    for item_name, item_id in res:
+        item_cache[item_name] = item_id
+
 
 async def load_player(conn: AsyncConnection, player: PlayerBase):
     insert_stmt = postgresql.insert(Player).values(**player.dict())
@@ -62,13 +87,13 @@ async def load_game_player(
 
 
 async def load_augment(conn: AsyncConnection, augment: AugmentBase):
-    insert_stmt = postgresql.insert(Augment).values(**augment.dict())
-    upsert_stmt = insert_stmt.on_conflict_do_update(
-        index_elements=["id"],
-        set_={k: getattr(insert_stmt.excluded, k) for k in augment.dict() if k != "id"},
-    )
-    res = await conn.execute(upsert_stmt)
-    return res.inserted_primary_key.id
+    if augment.augment_name in augment_cache:
+        return augment_cache[augment.augment_name]
+    insert_stmt = insert(Augment).values(**augment.dict())
+    res = await conn.execute(insert_stmt)
+    augment_id = res.inserted_primary_key.id
+    augment_cache[augment.augment_name] = augment_id
+    return augment_id
 
 
 async def load_game_player_augment(
@@ -86,13 +111,13 @@ async def load_game_player_augment(
 
 
 async def load_unit(conn: AsyncConnection, unit: UnitBase):
-    insert_stmt = postgresql.insert(Unit).values(**unit.dict())
-    upsert_stmt = insert_stmt.on_conflict_do_update(
-        index_elements=["unit_name"],
-        set_={k: getattr(insert_stmt.excluded, k) for k in unit.dict()},
-    )
-    res = await conn.execute(upsert_stmt)
-    return res.inserted_primary_key.id
+    if unit.unit_name in unit_cache:
+        return unit_cache[unit.unit_name]
+    insert_stmt = insert(Unit).values(**unit.dict())
+    res = await conn.execute(insert_stmt)
+    unit_id = res.inserted_primary_key.id
+    unit_cache[unit.unit_name] = unit_id
+    return unit_id
 
 
 async def load_game_player_unit(
@@ -109,13 +134,13 @@ async def load_game_player_unit(
 
 
 async def load_item(conn: AsyncConnection, item: ItemBase):
-    insert_stmt = postgresql.insert(Item).values(**item.dict())
-    upsert_stmt = insert_stmt.on_conflict_do_update(
-        index_elements=["item_name"],
-        set_={k: getattr(insert_stmt.excluded, k) for k in item.dict()},
-    )
-    res = await conn.execute(upsert_stmt)
-    return res.inserted_primary_key.id
+    if item.item_name in item_cache:
+        return item_cache[item.item_name]
+    insert_stmt = insert(Item).values(**item.dict())
+    res = await conn.execute(insert_stmt)
+    item_id = res.inserted_primary_key.id
+    item_cache[item.item_name] = item_id
+    return item_id
 
 
 async def load_game_player_unit_item(

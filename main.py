@@ -1,17 +1,25 @@
-from loguru import logger
-import aiohttp
 import asyncio
-from sqlalchemy import select, func
+
+import aiohttp
+from loguru import logger
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.models import GameModel, Player
-from src.handler.extractor import get_profile_data, update_profile_data, get_game_data
+from src.handler.extractor import get_game_data, get_profile_data, update_profile_data
+from src.handler.loader import (
+    load_augment_cache,
+    load_game,
+    load_game_detail,
+    load_item_cache,
+    load_player,
+    load_unit_cache,
+)
 from src.handler.transformer import (
-    transform_profile_data,
     get_update_url,
     transform_game_data,
+    transform_profile_data,
 )
-from src.handler.loader import load_player, load_game, load_game_detail
+from src.models import GameModel, Player
 from src.settings import settings
 
 DB_URL = (
@@ -74,6 +82,11 @@ async def run_from_db(count=10):
 
 
 async def main():
+    engine = create_async_engine(DB_URL)
+    async with engine.begin() as conn:
+        await load_augment_cache(conn)
+        await load_unit_cache(conn)
+        await load_item_cache(conn)
     while True:
         await run_from_db(5)
 
