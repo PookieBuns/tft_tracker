@@ -1,4 +1,5 @@
 import asyncio
+from typing import Callable
 import typer
 from src.settings import settings
 from src.handler.worker import sync_players, sync_games
@@ -13,26 +14,32 @@ DB_URL = (
 )
 
 
-async def main(sync_function, batch_size=10):
+async def main(
+    sync_function: Callable, batch_size: int = 10, run_forever: bool = False
+):
     engine = create_async_engine(DB_URL)
     async with engine.begin() as conn:
         await load_augment_cache(conn)
         await load_unit_cache(conn)
         await load_item_cache(conn)
-    await sync_function(engine, batch_size=batch_size)
+    if not run_forever:
+        await sync_function(engine, batch_size=batch_size)
+        return
+    while True:
+        await sync_function(engine, batch_size=batch_size)
 
 
 app = typer.Typer()
 
 
 @app.command()
-def games(batch_size: int = 10):
-    asyncio.run(main(sync_games, batch_size=batch_size))
+def games(batch_size: int = 10, run_forever: bool = False):
+    asyncio.run(main(sync_games, batch_size=batch_size, run_forever=run_forever))
 
 
 @app.command()
-def players(batch_size: int = 10):
-    asyncio.run(main(sync_players, batch_size=batch_size))
+def players(batch_size: int = 10, run_forever: bool = False):
+    asyncio.run(main(sync_players, batch_size=batch_size, run_forever=run_forever))
 
 
 if __name__ == "__main__":
