@@ -36,5 +36,4 @@ def players(batch_size: int = 10):
 
 
 if __name__ == "__main__":
-    # print(SQLModel.metadata.tables)
     app()

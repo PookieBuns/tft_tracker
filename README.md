@@ -16,8 +16,8 @@ TODO: Teach people how to use it
 
 - [x] Add caching for augment, unit, and item id for better performance
 - [ ] Add consumer / producer implementations for ETL
-- [ ] Add a scheduler
-- [ ] Add a status tracking for games so I don't rescrape them
+- [x] Add a scheduler
+- [x] Add a status tracking for games so I don't rescrape them
 - [ ] Scrape more than just the first page
 - [ ] Change liscense to WTFPL
 - [ ] Add a frontend to actually be able to see the stats

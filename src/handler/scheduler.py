@@ -13,7 +13,10 @@ async def get_need_dispatch_players(limit: int) -> list[Player]:
     engine = create_async_engine(DB_URL)
     async with engine.connect() as conn:
         stmt = (
-            select(Player).where(Player.next_sync_time < datetime.utcnow()).limit(limit)
+            select(Player)
+            .where(Player.next_sync_time < datetime.utcnow())
+            .order_by(Player.player_rank_score)
+            .limit(limit)
         )
         result = await conn.execute(stmt)
         return [Player.from_orm(player) for player in result]
