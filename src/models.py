@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 
 from pydantic import BaseModel
@@ -8,6 +8,9 @@ from sqlmodel import Field, Index
 from sqlmodel import SQLModel as _SQLModel
 
 from src.utils import camel_to_snake
+
+EPOCH_START_TIME = datetime(1970, 1, 1)
+EPOCH_START_TIME_STR = EPOCH_START_TIME.strftime("%Y-%m-%d %H:%M:%S")
 
 
 class SQLModel(_SQLModel):
@@ -58,6 +61,21 @@ class PlayerBase(SQLModel):
 
 class Player(PlayerBase, table=True):
     id: int = Field(primary_key=True)
+    next_sync_time: datetime = Field(
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+        }
+    )
+    last_sync_time: datetime = Field(
+        sa_column_kwargs={
+            "server_default": EPOCH_START_TIME_STR,
+        }
+    )
+    last_match_time: datetime = Field(
+        sa_column_kwargs={
+            "server_default": EPOCH_START_TIME_STR,
+        }
+    )
     created_at: datetime = Field(
         sa_column_kwargs={
             "server_default": text("CURRENT_TIMESTAMP"),
