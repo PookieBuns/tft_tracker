@@ -1,5 +1,6 @@
 import asyncio
 from typing import Callable
+from loguru import logger
 import typer
 from src.settings import settings
 from src.handler.worker import sync_players, sync_games
@@ -26,7 +27,10 @@ async def main(
         await sync_function(engine, batch_size=batch_size)
         return
     while True:
-        await sync_function(engine, batch_size=batch_size)
+        try:
+            await sync_function(engine, batch_size=batch_size)
+        except Exception as e:
+            logger.exception(e)
 
 
 app = typer.Typer()

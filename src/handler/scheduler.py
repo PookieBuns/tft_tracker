@@ -1,17 +1,20 @@
-from datetime import datetime
-from sqlalchemy import select
+from datetime import datetime, timedelta
+
+from pydantic import PostgresDsn
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import create_async_engine
+from sqlmodel import col
+
+from src.models import Game, GameStatus, Player
 from src.settings import settings
 from src.utils import create_db_url
-from pydantic import PostgresDsn
-from src.models import GameStatus, Player, Game
 
 DB_URL = create_db_url(settings, "postgresql+asyncpg", PostgresDsn)
 
 
 async def get_need_dispatch_players(limit: int) -> list[Player]:
     engine = create_async_engine(DB_URL)
-    async with engine.connect() as conn:
+    async with engine.begin() as conn:
         stmt = (
             select(Player)
             .where(Player.next_sync_time < datetime.utcnow())
@@ -19,12 +22,25 @@ async def get_need_dispatch_players(limit: int) -> list[Player]:
             .limit(limit)
         )
         result = await conn.execute(stmt)
-        return [Player.from_orm(player) for player in result]
+        player_list = [Player.from_orm(player) for player in result]
+        player_ids = [player.id for player in player_list]
+        update_stmt = (
+            update(Player)
+            .where(col(Player.id).in_(player_ids))
+            .values(next_sync_time=datetime.utcnow() + timedelta(hours=1))
+        )
+        await conn.execute(update_stmt)
+    return player_list
 
 
 async def get_need_dispatch_games(limit: int) -> list[Game]:
     engine = create_async_engine(DB_URL)
     async with engine.connect() as conn:
-        stmt = select(Game).where(Game.status == GameStatus.pending).limit(limit)
+        stmt = (
+            select(Game)
+            .where(Game.status == GameStatus.pending)
+            .order_by(func.random())
+            .limit(limit)
+        )
         result = await conn.execute(stmt)
         return [Game.from_orm(game) for game in result]
