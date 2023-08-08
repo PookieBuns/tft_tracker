@@ -18,12 +18,10 @@ async def update_profile_data(session: ClientSession, update_url: str):
         res_json = await res.json()
         if res_json.get("done"):
             break
-        res = await session.get(update_url)
-        res_json = await res.json()
 
 
 async def get_game_data(
-    session: ClientSession, region: str, username: str, game_id: str
+    session: ClientSession, region: str, username: str, game_id: int
 ) -> str:
     async with session.get(
         GAME_URL.format(

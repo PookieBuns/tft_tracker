@@ -12,6 +12,19 @@ from src.models import (
     UnitModel,
 )
 
+TIER_ABBREVIATION_MAP = {
+    "U": "Unranked",
+    "I": "Iron",
+    "B": "Bronze",
+    "S": "Silver",
+    "G": "Gold",
+    "P": "Platinum",
+    "D": "Diamond",
+    "M": "Master",
+    "GM": "Grandmaster",
+    "C": "Challenger",
+}
+
 
 def time_to_seconds(time_str: str) -> int:
     minutes, seconds = map(int, time_str.split(":"))
@@ -95,14 +108,29 @@ def get_placement(row: BeautifulSoup) -> int:
     return placement_int
 
 
-def get_summoner_name(row: BeautifulSoup) -> str:
+def get_player(row: BeautifulSoup) -> PlayerBase:
     summoner_pattern = r"https://lolchess.gg/profile/([a-z]+)/(.+)"
     summoner = row.find("td", {"class": "summoner"})
     summoner_profile_url = summoner.find("a")["href"]
     summoner_match = re.search(summoner_pattern, summoner_profile_url)
     assert summoner_match, f"Could not find summoner name {summoner_profile_url=}"
+    region = summoner_match.group(1)
     summoner_name = summoner_match.group(2)
-    return summoner_name
+    tier_abbreviation = summoner.find("span", {"class": "tier-badge"}).get_text(
+        strip=True
+    )
+    match = re.match(r'([A-Z]+)(\d*)', tier_abbreviation)
+    assert match, f"Could not find tier and division {tier_abbreviation=}"
+    tier_char, division_char = match.groups()
+    tier = TIER_ABBREVIATION_MAP[tier_char]
+    division = int(division_char) if division_char else 1
+    player = PlayerBase(
+        region=region,
+        player_name=summoner_name,
+        player_tier=tier,
+        player_division=division,
+    )
+    return player
 
 
 def get_augments(row: BeautifulSoup) -> list[AugmentBase]:
@@ -156,8 +184,8 @@ def parse_game_data_to_game_players(soup: BeautifulSoup) -> list[GamePlayerModel
     rows = tbody.find_all("tr")
     game_players = [
         GamePlayerModel(
+            player=get_player(row),
             placement=get_placement(row),
-            summoner_name=get_summoner_name(row),
             augments=get_augments(row),
             units=get_units(row),
         )

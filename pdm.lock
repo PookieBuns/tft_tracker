@@ -6,7 +6,7 @@ groups = ["default", "format", "lint", "dev"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:540acd9b5df84c30deb977c2deb2fa247f58dfee0c4b5348c3f0f16799caa3e0"
+content_hash = "sha256:49077072186e2e5560e0b8a7089d918393476a4250309f20466604e13a7f3c1f"
 
 [[package]]
 name = "aiohttp"
@@ -533,6 +533,20 @@ dependencies = [
 files = [
     {file = "sqlmodel-0.0.8-py3-none-any.whl", hash = "sha256:0fd805719e0c5d4f22be32eb3ffc856eca3f7f20e8c7aa3e117ad91684b518ee"},
     {file = "sqlmodel-0.0.8.tar.gz", hash = "sha256:3371b4d1ad59d2ffd0c530582c2140b6c06b090b32af9b9c6412986d7b117036"},
+]
+
+[[package]]
+name = "typer"
+version = "0.9.0"
+requires_python = ">=3.6"
+summary = "Typer, build great CLIs. Easy to code. Based on Python type hints."
+dependencies = [
+    "click<9.0.0,>=7.1.1",
+    "typing-extensions>=3.7.4.3",
+]
+files = [
+    {file = "typer-0.9.0-py3-none-any.whl", hash = "sha256:5d96d986a21493606a358cae4461bd8cdf83cbf33a5aa950ae629ca3b51467ee"},
+    {file = "typer-0.9.0.tar.gz", hash = "sha256:50922fd79aea2f4751a8e0408ff10d2662bd0c8bbfa84755a699f3bada2978b2"},
 ]
 
 [[package]]

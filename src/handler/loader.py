@@ -1,6 +1,7 @@
 from operator import pos
+from typing import Optional
 
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, update
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -48,14 +49,18 @@ async def load_item_cache(conn: AsyncConnection) -> None:
         item_cache[item_name] = item_id
 
 
-async def load_player(conn: AsyncConnection, player: PlayerBase):
+async def load_player(
+    conn: AsyncConnection, player: PlayerBase, ignore_update: Optional[set] = None
+):
+    if ignore_update is None:
+        ignore_update = set()
     insert_stmt = postgresql.insert(Player).values(**player.dict())
     upsert_stmt = insert_stmt.on_conflict_do_update(
         index_elements=["player_name"],
         set_={
             k: getattr(insert_stmt.excluded, k)
             for k in player.dict()
-            if getattr(player, k) is not None
+            if getattr(player, k) is not None and k not in ignore_update
         },
     )
     res = await conn.execute(upsert_stmt)
@@ -158,11 +163,11 @@ async def load_game_player_unit_item(
 
 async def load_game_detail(conn: AsyncConnection, game: GameModel):
     for player_mdl in game.players:
-        player = PlayerBase(
-            region=game.game.region,
-            player_name=player_mdl.summoner_name,
+        player = player_mdl.player
+        player.region = game.game.region
+        player_id = await load_player(
+            conn, player, ignore_update={"player_tier", "player_division"}
         )
-        player_id = await load_player(conn, player)
         game_player_id = await load_game_player(
             conn,
             game_id=game.game.id,
@@ -196,3 +201,6 @@ async def load_game_detail(conn: AsyncConnection, game: GameModel):
                     item_id=item_id,
                     item_num=item_num,
                 )
+    await conn.execute(
+        update(Game).where(Game.id == game.game.id).values(status="processed")
+    )

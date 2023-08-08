@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator
 from sqlalchemy import BigInteger, Column, ForeignKey, text
 from sqlalchemy.orm import declared_attr
 from sqlmodel import Field, Index
@@ -52,11 +52,35 @@ class Game(GameBase, table=True):
     )
 
 
+TIER_SCORES = {
+    "Unranked": 9,
+    "Iron": 8,
+    "Bronze": 7,
+    "Silver": 6,
+    "Gold": 5,
+    "Platinum": 4,
+    "Diamond": 3,
+    "Master": 2,
+    "Grandmaster": 1,
+    "Challenger": 0,
+}
+
 class PlayerBase(SQLModel):
     region: str
     player_name: str = Field(index=True, unique=True)
     player_tier: str | None = None
     player_division: int | None = None
+    player_rank_score: int | None
+
+    @root_validator
+    def compute_player_rank_score(cls, values):
+        tier = values.get("player_tier")
+        division = values.get("player_division")
+        if tier is None or division is None:
+            values["player_rank_score"] = None
+        else:
+            values["player_rank_score"] = TIER_SCORES[tier] * 10 + division
+        return values
 
 
 class Player(PlayerBase, table=True):
@@ -239,12 +263,12 @@ class UnitModel(BaseModel):
 
 
 class GamePlayerModel(BaseModel):
-    summoner_name: str
+    player: PlayerBase
     placement: int
     augments: list[AugmentBase]
     units: list[UnitModel]
 
 
 class GameModel(BaseModel):
-    game: Game
+    game: GameBase
     players: list[GamePlayerModel]
