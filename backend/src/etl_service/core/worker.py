@@ -74,10 +74,12 @@ async def sync_players(engine: AsyncEngine, batch_size=10):
         coros = [get_latest_profile_data(player, session) for player in players]
         profile_datas = await asyncio.gather(*coros)
     logger.info("Done Extract Data")
-    profile_datas = [profile_data for profile_data in profile_datas if profile_data]
-    player_games = [
-        transform_profile_data(profile_data) for profile_data in profile_datas
-    ]
+    player_games = []
+    for db_player, profile_data in zip(players, profile_datas):
+        if not profile_data:
+            continue
+        player, games = transform_profile_data(profile_data, db_player.player_name)
+        player_games.append((player, games))
     logger.info("Done Transform Data")
     async with engine.begin() as conn:
         player_ids = []

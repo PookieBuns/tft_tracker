@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from loguru import logger
 from pydantic import PostgresDsn
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -18,12 +19,13 @@ async def get_need_dispatch_players(limit: int) -> list[Player]:
         stmt = (
             select(Player)
             .where(Player.next_sync_time < datetime.utcnow())
-            .order_by(Player.player_rank_score)
+            .order_by(Player.player_rank_score, Player.last_sync_time)
             .limit(limit)
         )
         result = await conn.execute(stmt)
         player_list = [Player.from_orm(player) for player in result]
         player_ids = [player.id for player in player_list]
+        logger.info(f"player_ids: {player_ids}")
         update_stmt = (
             update(Player)
             .where(col(Player.id).in_(player_ids))

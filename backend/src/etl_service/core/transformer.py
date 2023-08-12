@@ -2,6 +2,7 @@ import re
 
 import arrow
 from bs4 import BeautifulSoup, Tag
+from loguru import logger
 
 from shared.models import (
     AugmentBase,
@@ -76,14 +77,19 @@ def parse_player_info_to_games(
     return games
 
 
-def parse_player_info_to_player(soup: BeautifulSoup) -> PlayerBase:
-    player_name = soup.find("div", {"class": "player-name"})
-    assert isinstance(player_name, Tag), f"Could not find player name for {soup=}"
-    player_region = player_name.find("span", {"class": "player-region"})
+def parse_player_info_to_player(soup: BeautifulSoup, player_name: str) -> PlayerBase:
+    player_name_div = soup.find("div", {"class": "player-name"})
+    assert isinstance(
+        player_name_div, Tag
+    ), f"Could not find player profile for {soup=}"
+    player_region = player_name_div.find("span", {"class": "player-region"})
     assert isinstance(player_region, Tag), f"Could not find player region for {soup=}"
     player_region_str = player_region.get_text(strip=True)
-    player_name_str = (
-        player_name.get_text(strip=True).replace(player_region_str, "").strip().lower()
+    player_display_name = (
+        player_name_div.get_text(strip=True)
+        .replace(player_region_str, "")
+        .strip()
+        .lower()
     )
     profile_tier_summary = soup.find("div", {"class": "profile__tier__summary"})
     assert isinstance(
@@ -103,10 +109,12 @@ def parse_player_info_to_player(soup: BeautifulSoup) -> PlayerBase:
     division_int = int(division)
     player = PlayerBase(
         region=player_region_str,
-        player_name=player_name_str,
+        player_name=player_name,
+        player_display_name=player_display_name,
         player_tier=tier,
         player_division=division_int,
     )
+    logger.info(f"Found player {player=}")
     return player
 
 
@@ -214,9 +222,11 @@ def parse_game_data_to_game_players(soup: BeautifulSoup) -> list[GamePlayerModel
     return game_players
 
 
-def transform_profile_data(profile_data: str) -> tuple[PlayerBase, list[GameBase]]:
+def transform_profile_data(
+    profile_data: str, player_name: str
+) -> tuple[PlayerBase, list[GameBase]]:
     soup = BeautifulSoup(profile_data, "html.parser")
-    player = parse_player_info_to_player(soup)
+    player = parse_player_info_to_player(soup, player_name)
     games = parse_player_info_to_games(soup, player)
     return player, games
 
