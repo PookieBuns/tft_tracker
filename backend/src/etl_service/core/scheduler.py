@@ -5,9 +5,9 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import col
 
-from src.models import Game, GameStatus, Player
-from src.settings import settings
-from src.utils import create_db_url
+from shared.models import Game, GameStatus, Player
+from shared.settings import settings
+from shared.utils import create_db_url
 
 DB_URL = create_db_url(settings, "postgresql+asyncpg", PostgresDsn)
 

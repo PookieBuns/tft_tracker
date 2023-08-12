@@ -1,21 +1,28 @@
 import asyncio
 from datetime import datetime, timedelta
-from sqlmodel import col
 
 from aiohttp import ClientSession
 from loguru import logger
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlmodel import col
 
-from src.handler.extractor import get_game_data, get_profile_data, update_profile_data
-from src.handler.loader import load_game, load_game_detail, load_player
-from src.handler.scheduler import get_need_dispatch_games, get_need_dispatch_players
-from src.handler.transformer import (
+from etl_service.core.extractor import (
+    get_game_data,
+    get_profile_data,
+    update_profile_data,
+)
+from etl_service.core.loader import load_game, load_game_detail, load_player
+from etl_service.core.scheduler import (
+    get_need_dispatch_games,
+    get_need_dispatch_players,
+)
+from etl_service.core.transformer import (
     get_update_url,
     transform_game_data,
     transform_profile_data,
 )
-from src.models import GameModel, Player
+from shared.models import GameModel, Player
 
 
 async def sync_games(engine: AsyncEngine, batch_size=10):

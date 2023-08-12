@@ -1,11 +1,13 @@
 import asyncio
 from typing import Callable
-from loguru import logger
+
 import typer
-from src.settings import settings
-from src.handler.worker import sync_players, sync_games
+from loguru import logger
 from sqlalchemy.ext.asyncio import create_async_engine
-from src.handler.loader import load_augment_cache, load_unit_cache, load_item_cache
+
+from etl_service.core.loader import load_augment_cache, load_item_cache, load_unit_cache
+from etl_service.core.worker import sync_games, sync_players
+from shared.settings import settings
 
 DB_URL = (
     "postgresql+asyncpg://"

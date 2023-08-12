@@ -3,9 +3,10 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parents[2]))
 
-from src import models # noqa
-from src.settings import settings
 from sqlmodel import SQLModel, create_engine
+
+from shared import models  # noqa
+from shared.settings import settings
 
 if __name__ == "__main__":
     db_url = (

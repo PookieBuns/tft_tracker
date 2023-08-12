@@ -1,11 +1,12 @@
-from operator import pos
 from typing import Optional
 
 from sqlalchemy import insert, select, update
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from src.models import (
+from shared.models import (
+    Augment,
+    AugmentBase,
     Game,
     GameBase,
     GameModel,
@@ -13,14 +14,12 @@ from src.models import (
     GamePlayerAugment,
     GamePlayerUnit,
     GamePlayerUnitItem,
-    Player,
-    PlayerBase,
-    Augment,
-    AugmentBase,
-    Unit,
-    UnitBase,
     Item,
     ItemBase,
+    Player,
+    PlayerBase,
+    Unit,
+    UnitBase,
 )
 
 augment_cache = {}
@@ -64,6 +63,7 @@ async def load_player(
         },
     )
     res = await conn.execute(upsert_stmt)
+    assert hasattr(res, "inserted_primary_key"), "inserted_primary_key doesn't exist"
     return res.inserted_primary_key.id
 
 
@@ -74,6 +74,7 @@ async def load_game(conn: AsyncConnection, game: GameBase):
         set_={k: getattr(insert_stmt.excluded, k) for k in game.dict() if k != "id"},
     )
     res = await conn.execute(upsert_stmt)
+    assert hasattr(res, "inserted_primary_key"), "inserted_primary_key doesn't exist"
     return res.inserted_primary_key.id
 
 
@@ -88,6 +89,7 @@ async def load_game_player(
         set_=dict(placement=placement),
     )
     res = await conn.execute(upsert_stmt)
+    assert hasattr(res, "inserted_primary_key"), "inserted_primary_key doesn't exist"
     return res.inserted_primary_key.id
 
 
@@ -96,6 +98,7 @@ async def load_augment(conn: AsyncConnection, augment: AugmentBase):
         return augment_cache[augment.augment_name]
     insert_stmt = insert(Augment).values(**augment.dict())
     res = await conn.execute(insert_stmt)
+    assert hasattr(res, "inserted_primary_key"), "inserted_primary_key doesn't exist"
     augment_id = res.inserted_primary_key.id
     augment_cache[augment.augment_name] = augment_id
     return augment_id
@@ -112,6 +115,7 @@ async def load_game_player_augment(
         set_=dict(augment_id=augment_id),
     )
     res = await conn.execute(upsert_stmt)
+    assert hasattr(res, "inserted_primary_key"), "inserted_primary_key doesn't exist"
     return res.inserted_primary_key.id
 
 
@@ -120,6 +124,7 @@ async def load_unit(conn: AsyncConnection, unit: UnitBase):
         return unit_cache[unit.unit_name]
     insert_stmt = insert(Unit).values(**unit.dict())
     res = await conn.execute(insert_stmt)
+    assert hasattr(res, "inserted_primary_key"), "inserted_primary_key doesn't exist"
     unit_id = res.inserted_primary_key.id
     unit_cache[unit.unit_name] = unit_id
     return unit_id
@@ -135,6 +140,7 @@ async def load_game_player_unit(
         index_elements=["game_player_id", "unit_num"], set_=dict(unit_id=unit_id)
     )
     res = await conn.execute(upsert_stmt)
+    assert hasattr(res, "inserted_primary_key"), "inserted_primary_key doesn't exist"
     return res.inserted_primary_key.id
 
 
@@ -143,6 +149,7 @@ async def load_item(conn: AsyncConnection, item: ItemBase):
         return item_cache[item.item_name]
     insert_stmt = insert(Item).values(**item.dict())
     res = await conn.execute(insert_stmt)
+    assert hasattr(res, "inserted_primary_key"), "inserted_primary_key doesn't exist"
     item_id = res.inserted_primary_key.id
     item_cache[item.item_name] = item_id
     return item_id
@@ -158,6 +165,7 @@ async def load_game_player_unit_item(
         index_elements=["game_player_unit_id", "item_num"], set_=dict(item_id=item_id)
     )
     res = await conn.execute(upsert_stmt)
+    assert hasattr(res, "inserted_primary_key"), "inserted_primary_key doesn't exist"
     return res.inserted_primary_key.id
 
 

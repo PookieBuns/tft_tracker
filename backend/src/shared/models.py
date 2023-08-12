@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 
 from pydantic import BaseModel, root_validator
@@ -7,7 +7,7 @@ from sqlalchemy.orm import declared_attr
 from sqlmodel import Field, Index
 from sqlmodel import SQLModel as _SQLModel
 
-from src.utils import camel_to_snake
+from shared.utils import camel_to_snake
 
 EPOCH_START_TIME = datetime(1970, 1, 1)
 EPOCH_START_TIME_STR = EPOCH_START_TIME.strftime("%Y-%m-%d %H:%M:%S")
@@ -64,6 +64,7 @@ TIER_SCORES = {
     "Grandmaster": 1,
     "Challenger": 0,
 }
+
 
 class PlayerBase(SQLModel):
     region: str

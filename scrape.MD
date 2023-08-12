@@ -8,7 +8,7 @@ tft_summoner
 id, summoner_name, last_sync_time, last_data_date
 
 tft_match
-match_id, data_date, 
+match_id, data_date,
 
 tft_augment
 augment_id, augment_name

@@ -1,14 +1,14 @@
-import arrow
 import re
-from bs4 import BeautifulSoup
 
-from src.models import (
+import arrow
+from bs4 import BeautifulSoup, Tag
+
+from shared.models import (
     AugmentBase,
     GameBase,
-    GameModel,
+    GamePlayerModel,
     ItemBase,
     PlayerBase,
-    GamePlayerModel,
     UnitModel,
 )
 
@@ -68,6 +68,7 @@ def parse_player_info_to_games(
 ) -> list[GameBase]:
     games = []
     match_history = soup.find("div", {"class": "profile__match-history-v2__items"})
+    assert isinstance(match_history, Tag), f"Could not find match history for {player=}"
     for match in match_history.find_all(
         "div", {"class": "profile__match-history-v2__item"}
     ):
@@ -77,49 +78,65 @@ def parse_player_info_to_games(
 
 def parse_player_info_to_player(soup: BeautifulSoup) -> PlayerBase:
     player_name = soup.find("div", {"class": "player-name"})
-    player_region_str = player_name.find("span", {"class": "player-region"}).get_text(
-        strip=True
-    )
+    assert isinstance(player_name, Tag), f"Could not find player name for {soup=}"
+    player_region = player_name.find("span", {"class": "player-region"})
+    assert isinstance(player_region, Tag), f"Could not find player region for {soup=}"
+    player_region_str = player_region.get_text(strip=True)
     player_name_str = (
         player_name.get_text(strip=True).replace(player_region_str, "").strip().lower()
     )
     profile_tier_summary = soup.find("div", {"class": "profile__tier__summary"})
+    assert isinstance(
+        profile_tier_summary, Tag
+    ), f"Could not find tier summary for {soup=}"
     profile_tier = profile_tier_summary.find(
         "span", {"class": "profile__tier__summary__tier"}
-    ).get_text(strip=True)
-    tier_info = profile_tier.split(" ")
+    )
+    assert isinstance(profile_tier, Tag), f"Could not find tier for {soup=}"
+    profile_tier_str = profile_tier.get_text(strip=True)
+    tier_info = profile_tier_str.split(" ")
     if len(tier_info) == 1:
         tier = tier_info[0]
-        division = 1
+        division = "1"
     else:
         tier, division = tier_info
+    division_int = int(division)
     player = PlayerBase(
         region=player_region_str,
         player_name=player_name_str,
         player_tier=tier,
-        player_division=division,
+        player_division=division_int,
     )
     return player
 
 
-def get_placement(row: BeautifulSoup) -> int:
+def get_placement(row: Tag) -> int:
     placement = row.find("td", {"class": "placement"})
+    assert isinstance(placement, Tag), f"Could not find placement for {row=}"
     placement_int = int(placement.get_text(strip=True))
     return placement_int
 
 
-def get_player(row: BeautifulSoup) -> PlayerBase:
+def get_player(row: Tag) -> PlayerBase:
     summoner_pattern = r"https://lolchess.gg/profile/([a-z]+)/(.+)"
     summoner = row.find("td", {"class": "summoner"})
-    summoner_profile_url = summoner.find("a")["href"]
+    assert isinstance(summoner, Tag), f"Could not find summoner for {row=}"
+    summoner_profile = summoner.find("a")
+    assert isinstance(
+        summoner_profile, Tag
+    ), f"Could not find summoner profile for {summoner=}"
+    summoner_profile_url = summoner_profile["href"]
+    assert isinstance(summoner_profile_url, str), "summoner_profile_url is not a str"
     summoner_match = re.search(summoner_pattern, summoner_profile_url)
     assert summoner_match, f"Could not find summoner name {summoner_profile_url=}"
     region = summoner_match.group(1)
     summoner_name = summoner_match.group(2)
-    tier_abbreviation = summoner.find("span", {"class": "tier-badge"}).get_text(
-        strip=True
-    )
-    match = re.match(r'([A-Z]+)(\d*)', tier_abbreviation)
+    tier_abbreviation = summoner.find("span", {"class": "tier-badge"})
+    assert isinstance(
+        tier_abbreviation, Tag
+    ), f"Could not find tier abbreviation for {summoner=}"
+    tier_abbreviation_str = tier_abbreviation.get_text(strip=True)
+    match = re.match(r"([A-Z]+)(\d*)", tier_abbreviation_str)
     assert match, f"Could not find tier and division {tier_abbreviation=}"
     tier_char, division_char = match.groups()
     tier = TIER_ABBREVIATION_MAP[tier_char]
@@ -133,9 +150,10 @@ def get_player(row: BeautifulSoup) -> PlayerBase:
     return player
 
 
-def get_augments(row: BeautifulSoup) -> list[AugmentBase]:
+def get_augments(row: Tag) -> list[AugmentBase]:
     augment_pattern = r"https://lolchess.gg/tooltip/item/([a-z0-9]+)/([0-9]+)"
     augments = row.find("td", {"class": "augments"})
+    assert isinstance(augments, Tag), f"Could not find augments for {row=}"
     augment_list = []
     for augment in augments.find_all("div", {"class": "augment"}):
         img = augment.find("img")
@@ -155,8 +173,9 @@ def get_augments(row: BeautifulSoup) -> list[AugmentBase]:
     return augment_list
 
 
-def get_units(row: BeautifulSoup) -> list[UnitModel]:
+def get_units(row: Tag) -> list[UnitModel]:
     units = row.find("td", {"class": "champions"})
+    assert isinstance(units, Tag), f"Could not find units for {row=}"
     champions_list = units.find_all("div", {"class": "champions__image"})
     champions_items = units.find_all("ul", {"class": "champions__items"})
     assert len(champions_list) == len(champions_items)
@@ -181,6 +200,7 @@ def get_units(row: BeautifulSoup) -> list[UnitModel]:
 
 def parse_game_data_to_game_players(soup: BeautifulSoup) -> list[GamePlayerModel]:
     tbody = soup.find("tbody")
+    assert isinstance(tbody, Tag), f"Could not find tbody for {soup=}"
     rows = tbody.find_all("tr")
     game_players = [
         GamePlayerModel(

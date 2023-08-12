@@ -1,8 +1,9 @@
 import re
-
 from typing import Type
+
 from pydantic import AnyUrl, BaseModel
-from src.settings import Settings
+
+from shared.settings import Settings
 
 
 def camel_to_snake(camel: str) -> str:

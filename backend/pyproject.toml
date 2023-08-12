@@ -1,6 +1,6 @@
 [project]
-name = ""
-version = ""
+name = "tft_tracker"
+version = "0.1.0"
 description = ""
 authors = [
     {name = "allenyuchen", email = "allenyuchen@hotmail.com"},
@@ -23,12 +23,13 @@ license = {text = "MIT"}
 
 [tool.pdm.dev-dependencies]
 format = [
-    "black>=23.7.0",
-    "isort>=5.12.0",
+    "black",
+    "isort",
 ]
 lint = [
-    "mypy>=1.4.1",
-    "ruff>=0.0.282",
+    "mypy",
+    "ruff",
+    "types-beautifulsoup4>=4.12.0.5",
 ]
 dev = [
     "psycopg2-binary>=2.9.7",
@@ -36,3 +37,9 @@ dev = [
 
 [tool.ruff]
 ignore = ["E402"]
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+ignore_missing_imports = false
