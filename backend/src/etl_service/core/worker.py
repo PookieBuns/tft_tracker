@@ -22,13 +22,10 @@ from etl_service.core.transformer import (
     transform_game_data,
     transform_profile_data,
 )
-from shared.models import GameModel, Player
+from shared.models import Game, GameBase, GameModel, Player, PlayerBase
 
 
-async def sync_games(engine: AsyncEngine, batch_size=10):
-    logger.info("Start sync games")
-    games = await get_need_dispatch_games(batch_size)
-    logger.info(f"Get {len(games)} games")
+async def sync_games(engine: AsyncEngine, games: list[Game]):
     async with ClientSession() as session:
         coros = [
             get_game_data(session, game.region, game.origin_player_name, game.id)
@@ -50,6 +47,13 @@ async def sync_games(engine: AsyncEngine, batch_size=10):
     logger.success("Done sync games")
 
 
+async def get_and_sync_games(engine: AsyncEngine, batch_size=10):
+    logger.info("Start sync games")
+    games = await get_need_dispatch_games(batch_size)
+    logger.info(f"Get {len(games)} games")
+    await sync_games(engine, games)
+
+
 async def get_latest_profile_data(player: Player, session) -> str | None:
     try:
         profile_data = await get_profile_data(
@@ -66,15 +70,12 @@ async def get_latest_profile_data(player: Player, session) -> str | None:
         return None
 
 
-async def sync_players(engine: AsyncEngine, batch_size=10):
-    logger.info("Start sync players")
-    players = await get_need_dispatch_players(batch_size)
-    logger.info(f"Get {len(players)} players")
+async def sync_players(engine: AsyncEngine, players: list[Player]):
     async with ClientSession() as session:
         coros = [get_latest_profile_data(player, session) for player in players]
         profile_datas = await asyncio.gather(*coros)
     logger.info("Done Extract Data")
-    player_games = []
+    player_games: list[tuple[PlayerBase, list[GameBase]]] = []
     for db_player, profile_data in zip(players, profile_datas):
         if not profile_data:
             continue
@@ -100,3 +101,11 @@ async def sync_players(engine: AsyncEngine, batch_size=10):
         )
     logger.info("Done Load Data")
     logger.success("Done sync players")
+    return player_games
+
+
+async def get_and_sync_players(engine: AsyncEngine, batch_size=10):
+    logger.info("Start sync players")
+    players = await get_need_dispatch_players(batch_size)
+    logger.info(f"Get {len(players)} players")
+    await sync_players(engine, players)

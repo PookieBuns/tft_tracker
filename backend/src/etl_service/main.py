@@ -3,6 +3,7 @@ from typing import Callable
 from loguru import logger
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from etl_service.app import app as web_app  # noqa
 from etl_service.core.loader import load_augment_cache, load_item_cache, load_unit_cache
 from shared.settings import settings
 

@@ -66,9 +66,12 @@ TIER_SCORES = {
 }
 
 
-class PlayerBase(SQLModel):
+class PlayerRequest(SQLModel):
     region: str
     player_name: str = Field(index=True, unique=True)
+
+
+class PlayerBase(PlayerRequest):
     player_display_name: str | None = None
     player_tier: str | None = None
     player_division: int | None = None
