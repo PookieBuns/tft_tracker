@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlmodel import col
 
 from etl_service.core.extractor import (
-    get_game_data,
+    get_match_data,
+    get_match_detail_data,
     get_profile_data,
     update_profile_data,
 )
@@ -19,7 +20,8 @@ from etl_service.core.scheduler import (
 )
 from etl_service.core.transformer import (
     get_update_url,
-    transform_game_data,
+    transform_match_detail_data,
+    transform_match_list_data,
     transform_profile_data,
 )
 from shared.models import Game, GameBase, GameModel, Player, PlayerBase
@@ -28,14 +30,16 @@ from shared.models import Game, GameBase, GameModel, Player, PlayerBase
 async def sync_games(engine: AsyncEngine, games: list[Game]):
     async with ClientSession() as session:
         coros = [
-            get_game_data(session, game.region, game.origin_player_name, game.id)
+            get_match_detail_data(
+                session, game.region, game.origin_player_name, game.id
+            )
             for game in games
         ]
         game_datas = await asyncio.gather(*coros)
     logger.info("Done Extract Data")
     game_mdls: list[GameModel] = []
     for game, game_data in zip(games, game_datas):
-        game_players = transform_game_data(game_data)
+        game_players = transform_match_detail_data(game_data)
         game_mdl = GameModel(game=game, players=game_players)
         game_mdls.append(game_mdl)
     logger.info("Done Transform Data")
@@ -74,12 +78,18 @@ async def sync_players(engine: AsyncEngine, players: list[Player]):
     async with ClientSession() as session:
         coros = [get_latest_profile_data(player, session) for player in players]
         profile_datas = await asyncio.gather(*coros)
+        game_coros = [
+            get_match_data(session, player.region, player.player_name, 1)
+            for player in players
+        ]
+        game_datas = await asyncio.gather(*game_coros)
     logger.info("Done Extract Data")
     player_games: list[tuple[PlayerBase, list[GameBase]]] = []
-    for db_player, profile_data in zip(players, profile_datas):
+    for db_player, profile_data, game_data in zip(players, profile_datas, game_datas):
         if not profile_data:
             continue
-        player, games = transform_profile_data(profile_data, db_player.player_name)
+        player = transform_profile_data(profile_data, db_player.player_name)
+        games = transform_match_list_data(game_data, player)
         player_games.append((player, games))
     logger.info("Done Transform Data")
     async with engine.begin() as conn:

@@ -222,16 +222,21 @@ def parse_game_data_to_game_players(soup: BeautifulSoup) -> list[GamePlayerModel
     return game_players
 
 
-def transform_profile_data(
-    profile_data: str, player_name: str
-) -> tuple[PlayerBase, list[GameBase]]:
+def transform_profile_data(profile_data: str, player_name: str) -> PlayerBase:
     soup = BeautifulSoup(profile_data, "html.parser")
     player = parse_player_info_to_player(soup, player_name)
+    return player
+
+
+def transform_match_list_data(
+    match_list_data: str, player: PlayerBase
+) -> list[GameBase]:
+    soup = BeautifulSoup(match_list_data, "html.parser")
     games = parse_player_info_to_games(soup, player)
-    return player, games
+    return games
 
 
-def transform_game_data(game_data: str) -> list[GamePlayerModel]:
+def transform_match_detail_data(game_data: str) -> list[GamePlayerModel]:
     soup = BeautifulSoup(game_data, "html.parser")
     game_players = parse_game_data_to_game_players(soup)
     return game_players

@@ -1,7 +1,10 @@
 from aiohttp import ClientSession
 
 PROFILE_URL = "https://lolchess.gg/profile/{region}/{profile_name}"
-GAME_URL = "https://lolchess.gg/profile/{region}/{profile_name}/matchDetail/{set_name}/{game_id}"
+MATCH_URL = (
+    "https://lolchess.gg/profile/{region}/{profile_name}/{set_name}/matches/all/{page}"
+)
+MATCH_DETAIL_URL = "https://lolchess.gg/profile/{region}/{profile_name}/matchDetail/{set_name}/{game_id}"
 SET_NAME = "s9"
 
 
@@ -20,11 +23,22 @@ async def update_profile_data(session: ClientSession, update_url: str):
             break
 
 
-async def get_game_data(
+async def get_match_data(
+    session: ClientSession, region: str, username: str, page: int
+) -> str:
+    async with session.get(
+        MATCH_URL.format(
+            region=region, profile_name=username, set_name=SET_NAME, page=page
+        )
+    ) as response:
+        return await response.text()
+
+
+async def get_match_detail_data(
     session: ClientSession, region: str, username: str, game_id: int
 ) -> str:
     async with session.get(
-        GAME_URL.format(
+        MATCH_DETAIL_URL.format(
             region=region, profile_name=username, set_name=SET_NAME, game_id=game_id
         )
     ) as response:
