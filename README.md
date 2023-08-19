@@ -18,7 +18,7 @@ TODO: Teach people how to use it
 - [ ] Add consumer / producer implementations for ETL
 - [x] Add a scheduler
 - [x] Add a status tracking for games so I don't rescrape them
-- [ ] Scrape more than just the first page
+- [x] Scrape more than just the first page
 - [ ] Change liscense to WTFPL
 - [ ] Add a frontend to actually be able to see the stats
 - [ ] change unique key for player to be PUUID
