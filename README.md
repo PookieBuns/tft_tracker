@@ -21,4 +21,4 @@ TODO: Teach people how to use it
 - [x] Scrape more than just the first page
 - [ ] Change liscense to WTFPL
 - [ ] Add a frontend to actually be able to see the stats
-- [ ] change unique key for player to be PUUID
+- [ ] Figure out how to deal with name changes (PUUID?)
