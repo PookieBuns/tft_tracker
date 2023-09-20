@@ -20,5 +20,5 @@ TODO: Teach people how to use it
 - [x] Add a status tracking for games so I don't rescrape them
 - [x] Scrape more than just the first page
 - [ ] Change liscense to WTFPL
-- [ ] Add a frontend to actually be able to see the stats
+- [x] Add a frontend to actually be able to see the stats
 - [ ] Figure out how to deal with name changes (PUUID?)
