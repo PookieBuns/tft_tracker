@@ -40,7 +40,7 @@ APP_NAME_TO_WEB_APP = {"etl": etl_web_app, "main": main_web_app}
 
 @app.command()
 def runserver(app_name: str):
-    uvicorn.run(APP_NAME_TO_WEB_APP[app_name])
+    uvicorn.run(APP_NAME_TO_WEB_APP[app_name], host="0.0.0.0")
 
 
 if __name__ == "__main__":

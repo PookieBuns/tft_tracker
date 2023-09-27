@@ -1,0 +1,36 @@
+version: "0.1.0"
+services:
+  backend:
+    image: "backend:${TAG-latest}"
+    env_file:
+      - backend/.env
+    environment:
+      - db_host=postgres
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: "python main.py runserver main"
+    ports:
+      - "8000:8000"
+  frontend:
+    image: "frontend:${TAG-latest}"
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    command: ["nginx", "-g", "daemon off;"]
+    ports:
+      - "5173:80"
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - tft_db_data:/var/lib/postgresql/data
+
+volumes:
+  tft_db_data:
+    external: true
