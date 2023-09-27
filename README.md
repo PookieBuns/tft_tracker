@@ -1,7 +1,5 @@
 # TFT Stat Tracker
 
----
-
 ![screenshot](img/screenshot.png)
 
 <p align="center">
