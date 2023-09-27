@@ -10,7 +10,10 @@ This is still heavily work in progress, use at your own risk
 
 ## QuickStart
 
-TODO: Teach people how to use it
+1. Make sure you have docker
+2. clone the repository
+3. run docker compose up --build
+4. access locally via localhost:20000
 
 ## TODO
 

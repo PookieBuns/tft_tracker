@@ -2,10 +2,12 @@ version: "0.1.0"
 services:
   backend:
     image: "backend:${TAG-latest}"
-    env_file:
-      - backend/.env
     environment:
+      - db_user=postgres
       - db_host=postgres
+      - db_port=5432
+      - db_name=postgres
+      - db_password=test1234
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -19,7 +21,7 @@ services:
       dockerfile: Dockerfile
     command: ["nginx", "-g", "daemon off;"]
     ports:
-      - "5173:80"
+      - "20000:80"
   postgres:
     image: postgres:latest
     environment:
