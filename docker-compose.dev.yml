@@ -1,0 +1,41 @@
+version: "0.1.0"
+services:
+  backend:
+    image: "backend:${TAG-latest}"
+    environment:
+      - db_user=postgres
+      - db_host=postgres
+      - db_port=5432
+      - db_name=postgres
+      - db_password=test1234
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: "python main.py runserver main"
+    ports:
+      - "8000:8000"
+  frontend:
+    image: "frontend:${TAG-latest}"
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    command: ["npm", "run", "dev"]
+    ports:
+      - "20000:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - tft_db_data:/var/lib/postgresql/data
+
+volumes:
+  tft_db_data:
+    external: true

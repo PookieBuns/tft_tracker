@@ -1,0 +1,19 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+}
+
+.appHeader {
+  height: 60px;
+}
+.pageContent {
+  display: flex;
+  flex: 1;
+  overflow-y: auto;
+}
+.appFooter {
+  height: 60px;
+  background-color: #282c34;
+}
